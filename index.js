@@ -10,7 +10,7 @@ const io = new Server(server, {
 });
 const cors = require("cors");
 const databse = require("./database.js");
-
+const tempRoomIds = require("./services/tempJoinedIds.set");
 //Rooms services
 const activeRoom = require("./services/activeRooms.service.js");
 const availableRoom = require("./services/availableRooms.service.js");
@@ -73,21 +73,48 @@ io.on("connection", (socket) => {
     io.to(Number(roomId)).emit("roomStatus", roomStatus.playerLeft);
     activeRoom.delete(Number(roomId));
     availableRoom.delete(Number(roomId));
+    tempRoomIds.removeRoom(Number(roomId));
   });
 
   socket.on("joinRandom", (name) => {
     availableRoom.getAllIds().then((ids) => {
       console.log("IDS we have", ids);
       if (ids.length) {
-        availableRoom.delete(ids[0]).then(() => {
-          socket.join(Number(ids[0]));
-          io.to(Number(Number(ids[0]))).emit(
-            "roomStatus",
-            roomStatus.playerJoinedRandom,
-            ids[0],
-            name
-          );
-        });
+        if (!tempRoomIds.getRoom(ids.length)) {
+          if (tempRoomIds.addRoom(ids[0])) {
+            availableRoom.delete(ids[0]).then(() => {
+              socket.join(Number(ids[0]));
+              io.to(Number(Number(ids[0]))).emit(
+                "roomStatus",
+                roomStatus.playerJoinedRandom,
+                ids[0],
+                name
+              );
+            });
+          } else {
+            const roomId = Math.floor(100000000 + Math.random() * 90000000);
+            console.log("DONT HAVE ID SO CREATED", roomId);
+            availableRoom.add(roomId).then(() => {
+              socket.join(Number(roomId));
+              io.to(Number(roomId)).emit(
+                "roomStatus",
+                roomStatus.success,
+                roomId
+              );
+            });
+          }
+        } else {
+          const roomId = Math.floor(100000000 + Math.random() * 90000000);
+          console.log("DONT HAVE ID SO CREATED", roomId);
+          availableRoom.add(roomId).then(() => {
+            socket.join(Number(roomId));
+            io.to(Number(roomId)).emit(
+              "roomStatus",
+              roomStatus.success,
+              roomId
+            );
+          });
+        }
       } else {
         const roomId = Math.floor(100000000 + Math.random() * 90000000);
         console.log("DONT HAVE ID SO CREATED", roomId);
