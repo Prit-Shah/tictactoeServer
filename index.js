@@ -1,27 +1,27 @@
 const express = require("express");
 const app = express();
 const http = require("http");
-const server = http.createServer(app);
 const { Server } = require("socket.io");
 const roomStatus = require("./statusMessages.js");
 const mongo = require("./mongoose.js");
-const io = new Server(server, {
-  cors: { origin: "*" },
-});
 const cors = require("cors");
 const databse = require("./database.js");
 const tempRoomIds = require("./services/tempJoinedIds.set");
+const server = http.createServer(app);
+const api = require("./tictac.api.js");
+app.use(api);
+const io = new Server(server, {
+  cors: { origin: "*" },
+});
 //Rooms services
 const activeRoom = require("./services/activeRooms.service.js");
 const availableRoom = require("./services/availableRooms.service.js");
-
 app.use(cors());
 mongo.connect();
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
-
+// app.get("/", (req, res) => {
+//   res.sendFile(__dirname + "/index.html");
+// });
 io.on("connection", (socket) => {
   socket.on("joinRoom", (roomId, name) => {
     console.log("JOINED ROOM ", roomId);
@@ -126,12 +126,20 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("leaveRoom", (roomId, code) => {
+    console.log("Leaving Room ", roomId);
+    socket.leave(Number(roomId));
+    // io.to(Number(roomId)).emit("playEmoteO", code);
+  });
+
   socket.on("emoteO", (roomId, code) => {
-    io.to(roomId).emit("playEmoteO", code);
+    console.log("EMOTE O", roomId);
+    io.to(Number(roomId)).emit("playEmoteO", code);
   });
 
   socket.on("emoteX", (roomId, code) => {
-    io.to(roomId).emit("playEmoteX", code);
+    console.log("EMOTE X", roomId);
+    io.to(Number(roomId)).emit("playEmoteX", code);
   });
 });
 server.listen(3000, () => {
