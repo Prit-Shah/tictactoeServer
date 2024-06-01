@@ -5,7 +5,6 @@ const { Server } = require("socket.io");
 const roomStatus = require("./statusMessages.js");
 const mongo = require("./mongoose.js");
 const cors = require("cors");
-const databse = require("./database.js");
 const tempRoomIds = require("./services/tempJoinedIds.set");
 const server = http.createServer(app);
 const api = require("./tictac.api.js");
@@ -24,7 +23,7 @@ mongo.connect();
 // });
 io.on("connection", (socket) => {
   socket.on("joinRoom", (roomId, name) => {
-    console.log("JOINED ROOM ", roomId);
+    // console.log("JOINED ROOM ", roomId);
     activeRoom.getRoom(Number(roomId)).then((room) => {
       if (room) {
         socket.join(Number(roomId));
@@ -41,9 +40,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("createRoom", (roomId) => {
-    console.log("CREATE ROOM ", roomId);
+    // console.log("CREATE ROOM ", roomId);
     Promise.all([activeRoom.getRoom(Number(roomId))]).then((activeRooms) => {
-      console.log(" availableRoom", activeRooms);
+      // console.log(" availableRoom", activeRooms);
       if (!activeRooms[0]) {
         socket.join(Number(roomId));
         io.to(Number(roomId)).emit("roomStatus", roomStatus.success, roomId);
@@ -55,12 +54,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("playX", (roomId, i, j) => {
-    console.log("PLAY X ", roomId, i, j);
+    // console.log("PLAY X ", roomId, i, j);
     io.to(Number(roomId)).emit("playedX", i, j);
   });
 
   socket.on("playO", (roomId, i, j) => {
-    console.log("PLAY O ", roomId, i, j);
+    // console.log("PLAY O ", roomId, i, j);
     io.to(Number(roomId)).emit("playedO", i, j);
   });
 
@@ -69,7 +68,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("playerLeft", (roomId) => {
-    console.log("PLAYER LEFT ", roomId);
+    // console.log("PLAYER LEFT ", roomId);
     io.to(Number(roomId)).emit("roomStatus", roomStatus.playerLeft);
     activeRoom.delete(Number(roomId));
     availableRoom.delete(Number(roomId));
@@ -78,7 +77,7 @@ io.on("connection", (socket) => {
 
   socket.on("joinRandom", (name) => {
     availableRoom.getAllIds().then((ids) => {
-      console.log("IDS we have", ids);
+      // console.log("IDS we have", ids);
       if (ids.length) {
         if (!tempRoomIds.getRoom(ids.length)) {
           if (tempRoomIds.addRoom(ids[0])) {
@@ -93,7 +92,7 @@ io.on("connection", (socket) => {
             });
           } else {
             const roomId = Math.floor(100000000 + Math.random() * 90000000);
-            console.log("DONT HAVE ID SO CREATED", roomId);
+            // console.log("DONT HAVE ID SO CREATED", roomId);
             availableRoom.add(roomId).then(() => {
               socket.join(Number(roomId));
               io.to(Number(roomId)).emit(
@@ -105,7 +104,7 @@ io.on("connection", (socket) => {
           }
         } else {
           const roomId = Math.floor(100000000 + Math.random() * 90000000);
-          console.log("DONT HAVE ID SO CREATED", roomId);
+          // console.log("DONT HAVE ID SO CREATED", roomId);
           availableRoom.add(roomId).then(() => {
             socket.join(Number(roomId));
             io.to(Number(roomId)).emit(
@@ -117,7 +116,7 @@ io.on("connection", (socket) => {
         }
       } else {
         const roomId = Math.floor(100000000 + Math.random() * 90000000);
-        console.log("DONT HAVE ID SO CREATED", roomId);
+        // console.log("DONT HAVE ID SO CREATED", roomId);
         availableRoom.add(roomId).then(() => {
           socket.join(Number(roomId));
           io.to(Number(roomId)).emit("roomStatus", roomStatus.success, roomId);
@@ -127,18 +126,18 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leaveRoom", (roomId, code) => {
-    console.log("Leaving Room ", roomId);
+    // console.log("Leaving Room ", roomId);
     socket.leave(Number(roomId));
     // io.to(Number(roomId)).emit("playEmoteO", code);
   });
 
   socket.on("emoteO", (roomId, code) => {
-    console.log("EMOTE O", roomId);
+    // console.log("EMOTE O", roomId);
     io.to(Number(roomId)).emit("playEmoteO", code);
   });
 
   socket.on("emoteX", (roomId, code) => {
-    console.log("EMOTE X", roomId);
+    // console.log("EMOTE X", roomId);
     io.to(Number(roomId)).emit("playEmoteX", code);
   });
 });

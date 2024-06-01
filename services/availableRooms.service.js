@@ -2,7 +2,7 @@ const availableRoom = require("../models/availableRooms.model");
 
 class AvailableRoomService {
   async add(id) {
-    console.log("ADD ROOM", id);
+    // console.log("ADD ROOM", id);
 
     const newAvailableRoom = new availableRoom({
       id: id,
