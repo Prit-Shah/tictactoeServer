@@ -15,7 +15,13 @@ const io = new Server(server, {
 //Rooms services
 const activeRoom = require("./services/activeRooms.service.js");
 const availableRoom = require("./services/availableRooms.service.js");
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://tictactoemania-c3d2f.web.app",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 mongo.connect();
 
 // app.get("/", (req, res) => {
